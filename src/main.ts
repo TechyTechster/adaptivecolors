@@ -9,12 +9,12 @@ const { plugin } = definePluginContext({
       str = str.trim();
       if (str.startsWith('#')) {
           let hex = str.replace(/^#/, '');
-          if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
-          const num = parseInt(hex, 16);
+          if (hex.length === 3) hex = [...hex].map(c => c + c).join('');
+          const num = Number.parseInt(hex, 16);
           return [num >> 16, (num >> 8) & 255, num & 255];
       }
       const match = str.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-      if (match) return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])];
+      if (match) return [Number.parseInt(match[1]), Number.parseInt(match[2]), Number.parseInt(match[3])];
       return [255, 0, 0];
     }
 
@@ -22,36 +22,37 @@ const { plugin } = definePluginContext({
     let lastArtworkBgColorStr = '';
 
     const observer = new MutationObserver(() => {
-      // 1. Adaptive colors based on Now Playing
       const npEl = document.querySelector('[style*="--nowPlaying-bgColor"]');
       if (npEl) {
-          const npBgColorStr = getComputedStyle(npEl).getPropertyValue('--nowPlaying-bgColor').trim();
-          if (npBgColorStr && npBgColorStr !== lastNpBgColorStr) {
+          let npBgColorStr = getComputedStyle(npEl).getPropertyValue('--nowPlaying-bgColor').trim();
+          
+          if (!npBgColorStr || npBgColorStr === 'transparent' || npBgColorStr === 'rgba(0, 0, 0, 0)') {
+              npBgColorStr = '#ff2654';
+          }
+
+          if (npBgColorStr !== lastNpBgColorStr) {
               lastNpBgColorStr = npBgColorStr;
               
-              let [bgR, bgG, bgB] = parseColorStr(npBgColorStr);
-              let bgBrightness = (bgR * 299 + bgG * 587 + bgB * 114) / 1000;
+              const [bgR, bgG, bgB] = parseColorStr(npBgColorStr);
+              const bgBrightness = (bgR * 299 + bgG * 587 + bgB * 114) / 1000;
 
-              const chosenColorStr = bgBrightness < 100
+              const chosenColorStr = (bgBrightness > 230 || bgBrightness < 60)
                   ? getComputedStyle(npEl).getPropertyValue('--nowPlaying-textColor1').trim()
                   : npBgColorStr;
 
               let [r, g, b] = parseColorStr(chosenColorStr || npBgColorStr);
-              let brightness = (r * 299 + g * 587 + b * 114) / 1000;
+              const brightness = (r * 299 + g * 587 + b * 114) / 1000;
 
               if (brightness > 200) {
                   const factor = 200 / brightness;
                   r = Math.round(r * factor);
                   g = Math.round(g * factor);
                   b = Math.round(b * factor);
-              } else if (brightness < 60) {
-                  const factor = 60 / Math.max(brightness, 1);
-                  if (brightness === 0) { r=60; g=60; b=60; }
-                  else {
-                      r = Math.min(255, Math.round(r * factor));
-                      g = Math.min(255, Math.round(g * factor));
-                      b = Math.min(255, Math.round(b * factor));
-                  }
+              } else if (brightness < 100) {
+                  const factor = 100 / Math.max(brightness, 1);
+                  r = Math.min(255, Math.round(r * factor));
+                  g = Math.min(255, Math.round(g * factor));
+                  b = Math.min(255, Math.round(b * factor));
               }
 
               const base = [r, g, b];
@@ -116,11 +117,15 @@ const { plugin } = definePluginContext({
           }
       }
 
-      // 2. Separate background color based on page artwork
       const artworkEl = document.querySelector('.artwork[data-v-45e2c6a1]');
       if (artworkEl) {
-          const artworkBgColorStr = getComputedStyle(artworkEl).getPropertyValue('--bgColor').trim();
-          if (artworkBgColorStr && artworkBgColorStr !== lastArtworkBgColorStr && artworkBgColorStr !== 'transparent') {
+          let artworkBgColorStr = getComputedStyle(artworkEl).getPropertyValue('--bgColor').trim();
+          
+          if (!artworkBgColorStr || artworkBgColorStr === 'transparent' || artworkBgColorStr === 'rgba(0, 0, 0, 0)') {
+              artworkBgColorStr = '#ff2654';
+          }
+
+          if (artworkBgColorStr !== lastArtworkBgColorStr) {
               lastArtworkBgColorStr = artworkBgColorStr;
               document.body.style.setProperty('--buttonColor', artworkBgColorStr);
               document.documentElement.style.setProperty('--buttonColor', artworkBgColorStr);
