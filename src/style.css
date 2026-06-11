@@ -1,6 +1,9 @@
 .cider-progress-bar .progress-current[data-v-fac1f3a9],
-.overlay-progress-bar[data-v-d14f7a2f],
+.overlay-progress-bar[data-v-d14f7a2f] {
+    background-color: var(--adaptiveAccent, #ffffff) !important;
+}
+
 .volume-icon[data-v-d14f7a2f],
 .nav-icon[data-v-0f850193] {
-    background-color: var(--adaptiveAccent, #ffffff) !important;
+    color: var(--adaptiveAccent, #ffffff) !important;
 }
