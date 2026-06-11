@@ -122,8 +122,15 @@ const { plugin } = definePluginContext({
           const artworkBgColorStr = getComputedStyle(artworkEl).getPropertyValue('--bgColor').trim();
           if (artworkBgColorStr && artworkBgColorStr !== lastArtworkBgColorStr && artworkBgColorStr !== 'transparent') {
               lastArtworkBgColorStr = artworkBgColorStr;
-              document.body.style.setProperty('--bgColor', artworkBgColorStr);
-              document.documentElement.style.setProperty('--bgColor', artworkBgColorStr);
+              document.body.style.setProperty('--buttonColor', artworkBgColorStr);
+              document.documentElement.style.setProperty('--buttonColor', artworkBgColorStr);
+
+              let [r, g, b] = parseColorStr(artworkBgColorStr);
+              let brightness = (r * 299 + g * 587 + b * 114) / 1000;
+              let textColor = brightness > 150 ? '#000000' : '#ffffff';
+              
+              document.body.style.setProperty('--buttonTextColor', textColor);
+              document.documentElement.style.setProperty('--buttonTextColor', textColor);
           }
       }
     });

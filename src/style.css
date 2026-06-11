@@ -7,3 +7,8 @@
 .nav-icon[data-v-0f850193] {
     color: var(--adaptiveAccent, #ffffff) !important;
 }
+
+.album-playback-actions .button[data-v-fb20e087] {
+    background: var(--buttonColor) !important;
+    color: var(--buttonTextColor) !important;
+}
