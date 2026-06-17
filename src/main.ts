@@ -117,7 +117,7 @@ const { plugin } = definePluginContext({
           }
       }
 
-      const artworkEl = document.querySelector('.artwork[data-v-45e2c6a1]');
+      const artworkEl = document.querySelector('.artwork');
       if (artworkEl) {
           let artworkBgColorStr = getComputedStyle(artworkEl).getPropertyValue('--bgColor').trim();
           

@@ -10,19 +10,19 @@
                 --buttonTextColor 1s var(--ease_appleSpring);
 }
 
-.cider-progress-bar .progress-current[data-v-fac1f3a9],
-.overlay-progress-bar[data-v-d14f7a2f] {
+.cider-progress-bar .progress-current,
+.overlay-progress-bar {
     background-color: var(--adaptiveAccent, #ffffff) !important;
     transition: background-color 1s var(--ease_appleSpring) !important;
 }
 
-.volume-icon[data-v-d14f7a2f],
-.nav-icon[data-v-0f850193] {
+.volume-icon,
+.nav-icon {
     color: var(--adaptiveAccent, #ffffff) !important;
     transition: color 1s var(--ease_appleSpring) !important;
 }
 
-.album-playback-actions .button[data-v-fb20e087] {
+.album-playback-actions .button {
     background: var(--buttonColor) !important;
     color: var(--buttonTextColor) !important;
     transition: background 1s var(--ease_appleSpring), color 1s var(--ease_appleSpring) !important;
