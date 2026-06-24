@@ -4,26 +4,26 @@
 @property --buttonTextColor { syntax: '<color>'; inherits: true; initial-value: #ffffff; }
 
 :root {
-    transition: --adaptiveAccent 1s var(--ease_appleSpring),
-                --keyColor 1s var(--ease_appleSpring),
-                --buttonColor 1s var(--ease_appleSpring),
-                --buttonTextColor 1s var(--ease_appleSpring);
+    transition: --adaptiveAccent 0.2s var(--ease_appleSpring),
+                --keyColor 0.2s var(--ease_appleSpring),
+                --buttonColor 0.2s var(--ease_appleSpring),
+                --buttonTextColor 0.2s var(--ease_appleSpring);
 }
 
-.cider-progress-bar .progress-current,
-.overlay-progress-bar {
+:root body .cider-progress-bar .progress-current,
+:root body .overlay-progress-bar {
     background-color: var(--adaptiveAccent, #ffffff) !important;
-    transition: background-color 1s var(--ease_appleSpring) !important;
+    transition: background-color 0.2s var(--ease_appleSpring) !important;
 }
 
-.volume-icon,
-.nav-icon {
+:root body .volume-icon,
+:root body .nav-icon {
     color: var(--adaptiveAccent, #ffffff) !important;
-    transition: color 1s var(--ease_appleSpring) !important;
+    transition: color 0.2s var(--ease_appleSpring) !important;
 }
 
-.album-playback-actions .button {
+:root body .album-playback-actions .button.button {
     background: var(--buttonColor) !important;
     color: var(--buttonTextColor) !important;
-    transition: background 1s var(--ease_appleSpring), color 1s var(--ease_appleSpring) !important;
+    transition: background 0.2s var(--ease_appleSpring), color 0.2s var(--ease_appleSpring) !important;
 }

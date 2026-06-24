@@ -18,26 +18,89 @@ const { plugin } = definePluginContext({
       return [255, 0, 0];
     }
 
+    function getAverageColor(img: HTMLImageElement): [number, number, number] | null {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+      
+      const width = canvas.width = img.naturalWidth || img.width || 100;
+      const height = canvas.height = img.naturalHeight || img.height || 100;
+      
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      try {
+          const data = ctx.getImageData(0, 0, width, height).data;
+          let r = 0, g = 0, b = 0, count = 0;
+          
+          for (let i = 0; i < data.length; i += 16) {
+              if (data[i + 3] > 0) {
+                  r += data[i];
+                  g += data[i + 1];
+                  b += data[i + 2];
+                  count++;
+              }
+          }
+          if (count === 0) return null;
+          return [Math.round(r / count), Math.round(g / count), Math.round(b / count)];
+      } catch (e) {
+          console.warn("Canvas tainted, couldn't extract color", e);
+          return null;
+      }
+    }
+
     let lastNpBgColorStr = '';
     let lastArtworkBgColorStr = '';
+    let lastExtractedImgSrc = '';
+    let lastLoadingImgSrc = '';
 
+    let rafId: number | null = null;
     const observer = new MutationObserver(() => {
-      const npEl = document.querySelector('[style*="--nowPlaying-bgColor"]');
-      if (npEl) {
-          let npBgColorStr = getComputedStyle(npEl).getPropertyValue('--nowPlaying-bgColor').trim();
-          
-          if (!npBgColorStr || npBgColorStr === 'transparent' || npBgColorStr === 'rgba(0, 0, 0, 0)') {
-              npBgColorStr = '#ff2654';
-          }
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        let npBgColorStr = '';
+        const npEl = document.querySelector('[style*="--nowPlaying-bgColor"]');
+        if (npEl) {
+            npBgColorStr = getComputedStyle(npEl).getPropertyValue('--nowPlaying-bgColor').trim();
+        }
+        
+        if (!npBgColorStr || npBgColorStr === 'transparent' || npBgColorStr === 'rgba(0, 0, 0, 0)') {
+            const artworkImg = document.querySelector('.player-artwork img') as HTMLImageElement;
+            if (artworkImg) {
+                if (artworkImg.complete && artworkImg.naturalWidth > 0) {
+                    if (artworkImg.src !== lastExtractedImgSrc) {
+                        const avgColor = getAverageColor(artworkImg);
+                        if (avgColor) {
+                            npBgColorStr = `rgb(${avgColor[0]}, ${avgColor[1]}, ${avgColor[2]})`;
+                            lastExtractedImgSrc = artworkImg.src;
+                        } else {
+                            npBgColorStr = '#ff2654';
+                        }
+                    } else {
+                        npBgColorStr = lastNpBgColorStr || '#ff2654';
+                    }
+                } else {
+                    if (artworkImg.src !== lastLoadingImgSrc) {
+                        lastLoadingImgSrc = artworkImg.src;
+                        artworkImg.addEventListener('load', () => {
+                            document.body.style.setProperty('--force-color-update', Date.now().toString());
+                        }, { once: true });
+                    }
+                    npBgColorStr = lastNpBgColorStr || '#ff2654';
+                }
+            } else {
+                npBgColorStr = '#ff2654';
+            }
+        }
 
-          if (npBgColorStr !== lastNpBgColorStr) {
+        if (npBgColorStr !== lastNpBgColorStr) {
               lastNpBgColorStr = npBgColorStr;
               
               const [bgR, bgG, bgB] = parseColorStr(npBgColorStr);
               const bgBrightness = (bgR * 299 + bgG * 587 + bgB * 114) / 1000;
 
               const chosenColorStr = (bgBrightness > 230 || bgBrightness < 60)
-                  ? getComputedStyle(npEl).getPropertyValue('--nowPlaying-textColor1').trim()
+                  ? (npEl ? getComputedStyle(npEl).getPropertyValue('--nowPlaying-textColor1').trim() : npBgColorStr)
                   : npBgColorStr;
 
               let [r, g, b] = parseColorStr(chosenColorStr || npBgColorStr);
@@ -115,7 +178,6 @@ const { plugin } = definePluginContext({
               htmlStyle.setProperty('--musicKeyColor-deepPressed-rgb', toRgbStr(deepPressed));
               htmlStyle.setProperty('--musicKeyColor-disabled', `rgba(${toRgbStr(base)}, .35)`);
           }
-      }
 
       const artworkEl = document.querySelector('.artwork');
       if (artworkEl) {
@@ -138,6 +200,7 @@ const { plugin } = definePluginContext({
               document.documentElement.style.setProperty('--buttonTextColor', textColor);
           }
       }
+      });
     });
 
     observer.observe(document.body, {
